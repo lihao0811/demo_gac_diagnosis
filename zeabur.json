@@ -1,6 +1,6 @@
 {
   "build": {
-    "type": "dockerfile",
-    "dockerfile": "Dockerfile"
+    "type": "static",
+    "output": "dist"
   }
 }
