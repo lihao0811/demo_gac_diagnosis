@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { ChatResponse, VehicleInfo, DiagnosisSession, DiagnosisStage, DiagnosisTask } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3021';
+// 生产环境使用相对路径，开发环境使用本地后端地址
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? ''
+  : (process.env.REACT_APP_API_URL || 'http://localhost:3021');
 
 export const chatApi = {
   async sendMessage(
