@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Car, Wrench, ClipboardCheck, BookOpen } from 'lucide-react';
+import { Send, Car } from 'lucide-react';
 import { chatApi } from '../services/api';
 import { Message, DiagnosisStage, DiagnosisTask, VehicleInfo, HistoricalCase } from '../types';
 import { MessageList } from './MessageList';
