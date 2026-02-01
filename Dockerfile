@@ -4,7 +4,7 @@ WORKDIR /app
 
 # 复制前端代码并构建
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm install --legacy-peer-deps
 
 COPY frontend/ ./frontend/
 RUN cd frontend && npm run build
