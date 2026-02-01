@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/zeabur",
+  "services": [
+    {
+      "name": "frontend",
+      "root": "frontend",
+      "template": "static",
+      "build": {
+        "command": "npm install && npm run build"
+      },
+      "output": "build"
+    },
+    {
+      "name": "backend",
+      "root": "backend",
+      "template": "node",
+      "build": {
+        "command": "npm install && npm run build"
+      },
+      "start": {
+        "command": "npm start"
+      }
+    }
+  ]
+}
