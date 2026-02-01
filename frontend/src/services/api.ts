@@ -1,10 +1,22 @@
-import axios from 'axios';
-import { ChatResponse, VehicleInfo, DiagnosisSession, DiagnosisStage, DiagnosisTask } from '../types';
+import { ChatResponse, VehicleInfo, DiagnosisStage } from '../types';
+import { getVehicleByVIN, getVehicleByPlate } from './vehicleService';
 
-// 生产环境使用相对路径，开发环境使用本地后端地址
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? ''
-  : (process.env.REACT_APP_API_URL || 'http://localhost:3021');
+// 百炼 API 配置 - POC 项目直接写在前端
+const API_KEY = 'sk-a1f23477f6bf4e5e8dd0a672cdc0888c';
+const BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+const MODEL = 'qwen-max';
+
+// 生成唯一 session ID
+function generateSessionId(): string {
+  return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// 系统提示词
+const SYSTEM_PROMPT = `你是一个专业的汽车故障诊断助手。你的任务是帮助技师诊断车辆故障。
+
+当用户提供车牌号或VIN码时，请分析车辆信息和故障码，给出专业的诊断建议。
+
+请用中文回复，保持专业但易懂的语言风格。`;
 
 export const chatApi = {
   async sendMessage(
@@ -13,49 +25,57 @@ export const chatApi = {
     stage?: DiagnosisStage,
     onStream?: (content: string) => void
   ): Promise<ChatResponse> {
-    if (onStream) {
-      return this.sendStreamMessage(message, sessionId, stage, onStream);
+    const currentSessionId = sessionId || generateSessionId();
+
+    // 检测车牌号或VIN码，获取车辆信息
+    let enhancedMessage = message;
+    const vinRegex = /[A-HJ-NPR-Z0-9]{17}/i;
+    const plateRegex = /[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-Z][A-HJ-NP-Z0-9]{5,6}/;
+
+    const vinMatch = message.match(vinRegex);
+    const plateMatch = message.match(plateRegex);
+
+    if (vinMatch) {
+      const vehicle = getVehicleByVIN(vinMatch[0]);
+      if (vehicle) {
+        enhancedMessage = `用户查询VIN码：${vinMatch[0]}。车辆信息：${JSON.stringify(vehicle)}。请分析车辆状况和故障码。`;
+      }
+    } else if (plateMatch) {
+      const vehicle = getVehicleByPlate(plateMatch[0]);
+      if (vehicle) {
+        enhancedMessage = `用户查询车牌号：${plateMatch[0]}。车辆信息：${JSON.stringify(vehicle)}。请分析车辆状况和故障码。`;
+      }
     }
 
-    const response = await axios.post(`${API_BASE_URL}/api/chat-with-tools`, {
-      message,
-      sessionId,
-      stage,
-    });
-
-    return response.data;
-  },
-
-  async sendStreamMessage(
-    message: string,
-    sessionId?: string,
-    stage?: DiagnosisStage,
-    onStream?: (content: string) => void
-  ): Promise<ChatResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/chat`, {
+    // 调用百炼 API
+    const response = await fetch(`${BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        message,
-        sessionId,
-        stage,
+        model: MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: enhancedMessage },
+        ],
+        stream: true,
+        temperature: 0.7,
       }),
     });
 
-    if (!response.body) {
-      throw new Error('No response body');
+    if (!response.ok) {
+      throw new Error(`API 请求失败: ${response.status}`);
     }
 
-    const reader = response.body.getReader();
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('无法读取响应流');
+    }
+
     const decoder = new TextDecoder();
     let fullContent = '';
-    let finalSessionId = sessionId || '';
-    let finalStage: DiagnosisStage = stage || 'perception';
-    let errorMessage = '';
-    let enrichedTasksJson = '';
-
     let buffer = '';
 
     while (true) {
@@ -67,120 +87,36 @@ export const chatApi = {
       buffer = lines.pop() || '';
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
+        if (line.startsWith('data:')) {
+          const data = line.slice(5).trim();
+          if (!data || data === '[DONE]') continue;
 
           try {
             const parsed = JSON.parse(data);
-            if (parsed.content) {
-              fullContent += parsed.content;
-              onStream?.(parsed.content);
-            }
-            if (parsed.enrichedTasks) {
-              // 接收enriched的任务JSON
-              enrichedTasksJson = parsed.enrichedTasks;
-            }
-            if (parsed.done) {
-              finalSessionId = parsed.sessionId || finalSessionId;
-              finalStage = parsed.stage || finalStage;
-              // 检查是否有错误消息
-              if (parsed.error) {
-                errorMessage = parsed.error;
-              }
+            const content = parsed.choices?.[0]?.delta?.content || '';
+            if (content) {
+              fullContent += content;
+              onStream?.(content);
             }
           } catch {
+            // 忽略解析错误
           }
         }
       }
-    }
-
-    // 如果有enriched的任务JSON，替换fullContent中的原始JSON
-    if (enrichedTasksJson) {
-      const startIdx = fullContent.indexOf('{"type":"tasks"');
-      if (startIdx !== -1) {
-        let braceCount = 0;
-        let endIdx = startIdx;
-        let inString = false;
-        let escape = false;
-
-        for (let i = startIdx; i < fullContent.length; i++) {
-          const char = fullContent[i];
-          if (escape) {
-            escape = false;
-            continue;
-          }
-          if (char === '\\' && inString) {
-            escape = true;
-            continue;
-          }
-          if (char === '"' && !escape) {
-            inString = !inString;
-            continue;
-          }
-          if (!inString) {
-            if (char === '{') braceCount++;
-            if (char === '}') braceCount--;
-            if (braceCount === 0 && i > startIdx) {
-              endIdx = i + 1;
-              break;
-            }
-          }
-        }
-
-        // 替换原始JSON为enriched JSON
-        fullContent = fullContent.substring(0, startIdx) + enrichedTasksJson + fullContent.substring(endIdx);
-      }
-    }
-
-    // 如果有错误消息，抛出错误
-    if (errorMessage) {
-      throw new Error(errorMessage);
     }
 
     return {
       content: fullContent,
-      sessionId: finalSessionId,
-      stage: finalStage,
+      sessionId: currentSessionId,
+      stage: stage || 'perception',
     };
   },
 
   async getVehicleByVIN(vin: string): Promise<VehicleInfo | null> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/vehicle/${vin}`);
-      return response.data.data;
-    } catch {
-      return null;
-    }
+    return getVehicleByVIN(vin);
   },
 
   async getVehicleByPlate(plateNumber: string): Promise<VehicleInfo | null> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/vehicle/plate/${plateNumber}`);
-      return response.data.data;
-    } catch {
-      return null;
-    }
-  },
-
-  async getSession(sessionId: string): Promise<DiagnosisSession | null> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/session/${sessionId}`);
-      return response.data.data;
-    } catch {
-      return null;
-    }
-  },
-
-  async updateStage(sessionId: string, stage: DiagnosisStage): Promise<void> {
-    await axios.post(`${API_BASE_URL}/api/session/${sessionId}/stage`, { stage });
-  },
-
-  async updateTasks(sessionId: string, tasks: DiagnosisTask[]): Promise<void> {
-    await axios.post(`${API_BASE_URL}/api/session/${sessionId}/tasks`, { tasks });
-  },
-
-  async confirmFaults(sessionId: string, faults: string[]): Promise<void> {
-    await axios.post(`${API_BASE_URL}/api/session/${sessionId}/confirm-faults`, { faults });
+    return getVehicleByPlate(plateNumber);
   },
 };

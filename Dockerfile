@@ -5,26 +5,32 @@ RUN npm install -g pnpm
 
 WORKDIR /app
 
-# 复制前端代码并构建
-COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
-RUN cd frontend && pnpm install --frozen-lockfile
+# 复制前端代码
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
 
-COPY frontend/ ./frontend/
+# 安装依赖
+RUN pnpm install --frozen-lockfile
+
+# 复制源码
+COPY frontend/ ./
+
+# 构建
 ENV CI=false
-RUN cd frontend && pnpm run build
+RUN pnpm run build
 
-# 复制后端代码并构建
-COPY backend/package.json backend/package-lock.json ./backend/
-RUN cd backend && npm install
+# 使用 nginx 托管静态文件
+FROM nginx:alpine
+COPY --from=0 /app/build /usr/share/nginx/html
 
-COPY backend/ ./backend/
-RUN cd backend && npm run build
-
-# 设置环境变量
-ENV PORT=8080
-ENV NODE_ENV=production
+# nginx 配置 - 支持 SPA 路由
+RUN echo 'server { \
+    listen 8080; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
-
-# 启动后端服务
-CMD ["node", "backend/dist/index.js"]
+CMD ["nginx", "-g", "daemon off;"]
