@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { User, Bot, CheckCircle, Circle, Wrench, AlertTriangle } from 'lucide-react';
+import { User, Bot, Circle, AlertTriangle } from 'lucide-react';
 import { Message } from '../types';
 import { InteractiveTaskList } from './InteractiveTaskList';
 import { InteractiveQuestions } from './InteractiveQuestions';
@@ -218,44 +218,6 @@ const parseStreamingRepair = (content: string): any => {
     return Object.keys(repair).length > 0 ? repair : null;
   }
 };
-
-// 车辆信息卡片组件
-const VehicleInfoCard: React.FC<{ vehicle: any }> = ({ vehicle }) => (
-  <div className="mt-3 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-        <span className="text-white text-xs font-bold">车</span>
-      </div>
-      <div className="font-semibold text-gray-800">车辆信息</div>
-    </div>
-    <div className="space-y-2 text-sm">
-      <div className="flex justify-between">
-        <span className="text-gray-600">品牌车型：</span>
-        <span className="font-medium text-gray-800">{vehicle.brand} {vehicle.model}</span>
-      </div>
-      {vehicle.plateNumber && (
-        <div className="flex justify-between">
-          <span className="text-gray-600">车牌号：</span>
-          <span className="font-medium text-gray-800">{vehicle.plateNumber}</span>
-        </div>
-      )}
-      <div className="flex justify-between">
-        <span className="text-gray-600">VIN码：</span>
-        <span className="font-mono text-xs text-gray-800">{vehicle.vin}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-600">发动机型号：</span>
-        <span className="font-medium text-gray-800">{vehicle.engineType}</span>
-      </div>
-      {vehicle.mileage && (
-        <div className="flex justify-between">
-          <span className="text-gray-600">当前里程：</span>
-          <span className="font-medium text-gray-800">{vehicle.mileage.toLocaleString()} 公里</span>
-        </div>
-      )}
-    </div>
-  </div>
-);
 
 // 任务列表组件（只读版本，用于已完成的任务）
 const TaskList: React.FC<{ tasks: any[]; feedbacks?: any[] }> = ({ tasks, feedbacks }) => {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChatResponse, Message, VehicleInfo, DiagnosisSession, DiagnosisStage, DiagnosisTask } from '../types';
+import { ChatResponse, VehicleInfo, DiagnosisSession, DiagnosisStage, DiagnosisTask } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3021';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Calendar, User, Wrench, Clock, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, DollarSign } from 'lucide-react';
 import { HistoricalCase } from '../types';
 
 interface HistoricalCasesPanelProps {

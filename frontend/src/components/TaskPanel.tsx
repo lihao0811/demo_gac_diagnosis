@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Circle, Clock } from 'lucide-react';
+import { CheckCircle, Circle } from 'lucide-react';
 import { DiagnosisTask } from '../types';
 
 interface TaskPanelProps {

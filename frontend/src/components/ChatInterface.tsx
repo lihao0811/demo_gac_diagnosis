@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Car, Wrench, ClipboardCheck, BookOpen, Loader2 } from 'lucide-react';
+import { Send, Car, Wrench, ClipboardCheck, BookOpen } from 'lucide-react';
 import { chatApi } from '../services/api';
 import { Message, DiagnosisStage, DiagnosisTask, VehicleInfo, HistoricalCase } from '../types';
-import { StageIndicator } from './StageIndicator';
 import { MessageList } from './MessageList';
 import { TaskPanel } from './TaskPanel';
 import { VehicleCard } from './VehicleCard';
@@ -17,21 +16,12 @@ const stageNames: Record<DiagnosisStage, string> = {
   guidance: '维修指导',
 };
 
-const stageIcons: Record<DiagnosisStage, React.ReactNode> = {
-  perception: <Car className="w-4 h-4" />,
-  decomposition: <ClipboardCheck className="w-4 h-4" />,
-  execution: <Wrench className="w-4 h-4" />,
-  confirmation: <ClipboardCheck className="w-4 h-4" />,
-  guidance: <BookOpen className="w-4 h-4" />,
-};
-
 export const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [currentStage, setCurrentStage] = useState<DiagnosisStage>('perception');
-  const [completedStages, setCompletedStages] = useState<Set<DiagnosisStage>>(new Set());
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null);
   const [tasks, setTasks] = useState<DiagnosisTask[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -412,21 +402,6 @@ export const ChatInterface: React.FC = () => {
       setIsStreaming(false);
       inputRef.current?.focus();
     }
-  };
-
-  const handleStageChange = async (newStage: DiagnosisStage) => {
-    if (newStage === currentStage) return;
-
-    setCurrentStage(newStage);
-    if (sessionId) {
-      await chatApi.updateStage(sessionId, newStage);
-    }
-
-    const stageMessage: Message = {
-      role: 'assistant',
-      content: `已进入【${stageNames[newStage]}】阶段。请继续描述您的问题。`,
-    };
-    setMessages(prev => [...prev, stageMessage]);
   };
 
   const handleAnalyzeFaults = async () => {
