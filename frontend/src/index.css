@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .chat-message {
+    @apply max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed;
+  }
+
+  .chat-message-user {
+    @apply chat-message bg-primary-600 text-white ml-auto rounded-br-md;
+  }
+
+  .chat-message-ai {
+    @apply chat-message bg-white text-gray-800 shadow-sm border border-gray-100 mr-auto rounded-bl-md;
+  }
+
+  .stage-indicator {
+    @apply flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all;
+  }
+
+  .stage-indicator-active {
+    @apply stage-indicator bg-primary-100 text-primary-700;
+  }
+
+  .stage-indicator-completed {
+    @apply stage-indicator bg-secondary-100 text-secondary-700;
+  }
+
+  .stage-indicator-pending {
+    @apply stage-indicator bg-gray-100 text-gray-500;
+  }
+
+  .typing-indicator {
+    @apply flex gap-1;
+  }
+
+  .typing-dot {
+    @apply w-2 h-2 rounded-full bg-gray-400 animate-bounce;
+  }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+}
