@@ -1,16 +1,20 @@
 FROM node:18-alpine
 
+# 安装 pnpm
+RUN npm install -g pnpm
+
 WORKDIR /app
 
 # 复制前端代码并构建
-COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install --legacy-peer-deps
+COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
+RUN cd frontend && pnpm install --frozen-lockfile
 
 COPY frontend/ ./frontend/
-RUN cd frontend && npm run build
+ENV CI=false
+RUN cd frontend && pnpm run build
 
 # 复制后端代码并构建
-COPY backend/package*.json ./backend/
+COPY backend/package.json backend/package-lock.json ./backend/
 RUN cd backend && npm install
 
 COPY backend/ ./backend/
