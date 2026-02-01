@@ -116,13 +116,8 @@ export const ChatInterface: React.FC = () => {
 
       setSessionId(response.sessionId);
 
-      // 更新当前阶段，并标记之前的阶段为已完成
+      // 更新当前阶段
       if (response.stage !== currentStage) {
-        setCompletedStages(prev => {
-          const newSet = new Set(prev);
-          if (currentStage) newSet.add(currentStage);
-          return newSet;
-        });
         setCurrentStage(response.stage);
       }
 
@@ -239,13 +234,8 @@ export const ChatInterface: React.FC = () => {
 
       setSessionId(response.sessionId);
 
-      // 更新当前阶段，并标记之前的阶段为已完成
+      // 更新当前阶段
       if (response.stage !== currentStage) {
-        setCompletedStages(prev => {
-          const newSet = new Set(prev);
-          if (currentStage) newSet.add(currentStage);
-          return newSet;
-        });
         setCurrentStage(response.stage);
       }
 
@@ -347,13 +337,8 @@ export const ChatInterface: React.FC = () => {
 
       setSessionId(response.sessionId);
 
-      // 更新当前阶段，并标记之前的阶段为已完成
+      // 更新当前阶段
       if (response.stage !== currentStage) {
-        setCompletedStages(prev => {
-          const newSet = new Set(prev);
-          if (currentStage) newSet.add(currentStage);
-          return newSet;
-        });
         setCurrentStage(response.stage);
       }
 
@@ -442,11 +427,6 @@ export const ChatInterface: React.FC = () => {
 
       // 更新当前阶段
       if (response.stage !== currentStage) {
-        setCompletedStages(prev => {
-          const newSet = new Set(prev);
-          if (currentStage) newSet.add(currentStage);
-          return newSet;
-        });
         setCurrentStage(response.stage);
       }
 
@@ -564,11 +544,6 @@ export const ChatInterface: React.FC = () => {
 
       // 更新当前阶段
       if (response.stage !== currentStage) {
-        setCompletedStages(prev => {
-          const newSet = new Set(prev);
-          if (currentStage) newSet.add(currentStage);
-          return newSet;
-        });
         setCurrentStage(response.stage);
       }
 
