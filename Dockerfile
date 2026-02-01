@@ -21,10 +21,10 @@ COPY backend/ ./backend/
 RUN cd backend && npm run build
 
 # 设置环境变量
-ENV PORT=3001
+ENV PORT=8080
 ENV NODE_ENV=production
 
-EXPOSE 3001
+EXPOSE 8080
 
 # 启动后端服务
 CMD ["node", "backend/dist/index.js"]
