@@ -81,7 +81,7 @@ router.post('/chat', async (req, res) => {
           fullResponse += content;
           res.write(`data: ${JSON.stringify({ content, type: 'text' })}\n\n`);
           // 立即刷新缓冲区
-          if (res.flush) res.flush();
+          if ((res as any).flush) (res as any).flush();
         }
       }
 
@@ -211,7 +211,7 @@ router.post('/chat', async (req, res) => {
           const enrichedJson = enrichedResponse.substring(startIdx, endIdx);
           // 发送enriched的JSON作为特殊消息
           res.write(`data: ${JSON.stringify({ enrichedTasks: enrichedJson, type: 'enriched' })}\n\n`);
-          if (res.flush) res.flush();
+          if ((res as any).flush) (res as any).flush();
         }
       }
 

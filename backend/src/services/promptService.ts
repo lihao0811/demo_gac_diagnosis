@@ -136,6 +136,7 @@ export class PromptService {
       },
       {
         type: 'function',
+        function: {
           name: 'getCommonFaults',
           description: '获取该车型的常见故障列表',
           parameters: {
@@ -148,6 +149,7 @@ export class PromptService {
             },
             required: ['brand'],
           },
+        },
       },
     ];
   }
