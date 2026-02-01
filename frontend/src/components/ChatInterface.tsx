@@ -717,9 +717,6 @@ export const ChatInterface: React.FC = () => {
                     tasks={tasks}
                     onTaskUpdate={(updatedTasks) => {
                       setTasks(updatedTasks);
-                      if (sessionId) {
-                        chatApi.updateTasks(sessionId, updatedTasks);
-                      }
                     }}
                   />
                 )}
